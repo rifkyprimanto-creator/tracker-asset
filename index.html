@@ -1,140 +1,119 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asset Risk Monitor - Pro Cloud</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-:root{
-  --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--bg3:#e4e8f0;
-  --tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699;
-  --br:#dde2ec;--blu:#185fa5;--grn:#3b6d11;--red:#a32d2d;
-  --amb:#854f0b;
-}
-body { font-family: sans-serif; background: var(--bg0); color: var(--tx1); margin: 0; padding: 20px; }
-.card { background: var(--bg1); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.metric { background: var(--bg2); padding: 15px; border-radius: 10px; border: 1px solid var(--br); }
-.metric small { color: var(--tx3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-.metric div { font-size: 24px; font-weight: bold; margin-top: 5px; }
-
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 12px; color: var(--tx3); font-size: 12px; border-bottom: 2px solid var(--bg2); }
-td { padding: 12px; border-bottom: 1px solid var(--bg2); font-size: 14px; }
-
-.status-on { color: var(--grn); background: #eaf3de; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-.hb-bar { display: flex; gap: 2px; margin-top: 4px; }
-.hb-bit { width: 4px; height: 12px; background: var(--br); border-radius: 1px; }
-.hb-bit.on { background: var(--grn); }
-
-input { padding: 10px; border: 1px solid var(--br); border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
-.btn { background: var(--blu); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
-#map { height: 400px; border-radius: 12px; border: 1px solid var(--br); margin-top: 20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Monitor Pro - Fix Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root{
+            --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--tx1:#0f1117;--tx3:#7a8699;--br:#dde2ec;--blu:#185fa5;--grn:#3b6d11;
+        }
+        body { font-family: sans-serif; background: var(--bg0); margin: 0; padding: 20px; }
+        .card { background: var(--bg1); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        #map { height: 450px; border-radius: 12px; border: 1px solid var(--br); }
+        .btn { background: var(--blu); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        input { padding: 10px; border: 1px solid var(--br); border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 10px; color: var(--tx3); font-size: 12px; border-bottom: 2px solid var(--bg2); }
+        td { padding: 10px; border-bottom: 1px solid var(--bg2); font-size: 13px; }
+    </style>
 </head>
 <body>
 
 <div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h2 style="margin:0;"><i class="ti ti-shield-check"></i> ASSET RISK MONITOR</h2>
-    <div id="sync-indicator" style="font-size:12px; color:var(--grn); font-weight:bold;">● CLOUD LIVE</div>
-  </div>
+    <h2>🛰️ Live Asset Map Sync</h2>
+    <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 20px;">
+        <div>
+            <input type="text" id="in-id" placeholder="ID (Contoh: JK-01)">
+            <input type="text" id="in-name" placeholder="Nama Aset">
+            <input type="number" step="any" id="in-lat" placeholder="Latitude (Contoh: -6.2)">
+            <input type="number" step="any" id="in-lng" placeholder="Longitude (Contoh: 106.8)">
+            <button class="btn" onclick="enrollWithLocation()">Update & Simpan Lokasi</button>
+        </div>
+        <div id="map"></div>
+    </div>
 </div>
 
-<div class="grid">
-  <div class="metric"><small>Total Assets</small><div id="m-total">0</div></div>
-  <div class="metric"><small>Software Online</small><div id="m-sw" style="color:var(--grn)">0</div></div>
-  <div class="metric"><small>Hardware Online</small><div id="m-hw" style="color:var(--amb)">0</div></div>
-</div>
-
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-  <div class="card">
-    <h3><i class="ti ti-plus"></i> Enroll Asset</h3>
-    <input type="text" id="in-id" placeholder="Device ID (Contoh: SEUIC-001)">
-    <input type="text" id="in-name" placeholder="Asset Name">
-    <input type="text" id="in-owner" placeholder="Coordinator">
-    <button class="btn" onclick="enrollAsset()">SAVE TO CLOUD</button>
-  </div>
-
-  <div class="card">
-    <h3><i class="ti ti-list"></i> Active Inventory</h3>
+<div class="card">
+    <h3>Daftar Lokasi Aset</h3>
     <table>
-      <thead>
-        <tr><th>ASSET INFO</th><th>STATUS</th><th>HEARTBEAT (20m)</th></tr>
-      </thead>
-      <tbody id="asset-table"></tbody>
+        <thead><tr><th>ID / Nama</th><th>Koordinat</th><th>Status</th></tr></thead>
+        <tbody id="asset-table"></tbody>
     </table>
-  </div>
 </div>
-
-<div id="map"></div>
 
 <script>
-// --- CONFIG SUPABASE ---
 const SUPABASE_URL = 'https://uappnmhaqblzittbjmsi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DCWTb1BAzQOgO8-sSmlEyg_7dc_jS2X';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let assets = [];
-const map = L.map('map').setView([-6.2000, 106.8166], 12);
+let markers = {};
+const map = L.map('map').setView([-6.2000, 106.8166], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 async function loadData() {
-  const { data, error } = await _supabase.from('assets').select('*');
-  if (!error) {
-    assets = data;
-    renderAll();
-  }
+    const { data, error } = await _supabase.from('assets').select('*');
+    if (!error && data) {
+        assets = data;
+        renderAll();
+    }
 }
 
-async function enrollAsset() {
-  const id = document.getElementById('in-id').value;
-  const name = document.getElementById('in-name').value;
-  const owner = document.getElementById('in-owner').value;
-  if(!id || !name) return alert("ID & Name wajib!");
+async function enrollWithLocation() {
+    const id = document.getElementById('in-id').value;
+    const name = document.getElementById('in-name').value;
+    const lat = parseFloat(document.getElementById('in-lat').value);
+    const lng = parseFloat(document.getElementById('in-lng').value);
 
-  const { error } = await _supabase.from('assets').upsert({
-    id, name, owner, sw_status: 'online', hw_status: 'offline'
-  });
+    if(!id || isNaN(lat)) return alert("ID dan Lat/Long wajib angka!");
 
-  if(!error) {
-    document.getElementById('in-id').value = '';
-    document.getElementById('in-name').value = '';
-    loadData();
-  }
+    const { error } = await _supabase.from('assets').upsert({
+        id: id, 
+        name: name, 
+        sw_lat: lat, 
+        sw_lng: lng, 
+        sw_status: 'online'
+    });
+
+    if(!error) {
+        alert("Lokasi Terupdate!");
+        loadData();
+    } else {
+        console.error(error);
+    }
 }
 
 function renderAll() {
-  // Metrics
-  document.getElementById('m-total').innerText = assets.length;
-  document.getElementById('m-sw').innerText = assets.filter(a => a.sw_status === 'online').length;
+    const tbody = document.getElementById('asset-table');
+    tbody.innerHTML = '';
 
-  // Table
-  const tbody = document.getElementById('asset-table');
-  tbody.innerHTML = assets.map(a => `
-    <tr>
-      <td>
-        <strong>${a.id}</strong><br>
-        <small style="color:var(--tx3)">${a.name} | ${a.owner || '-'}</small>
-      </td>
-      <td><span class="status-on">ONLINE</span></td>
-      <td>
-        <div class="hb-bar">
-          ${Array(20).fill(0).map(() => `<div class="hb-bit on"></div>`).join('')}
-        </div>
-      </td>
-    </tr>
-  `).join('');
+    assets.forEach(a => {
+        // Render Tabel
+        tbody.innerHTML += `
+            <tr>
+                <td><b>${a.id}</b><br><small>${a.name}</small></td>
+                <td>${a.sw_lat || 0}, ${a.sw_lng || 0}</td>
+                <td style="color:green">ONLINE</td>
+            </tr>
+        `;
+
+        // Render Map Marker
+        if (a.sw_lat && a.sw_lng) {
+            if (markers[a.id]) map.removeLayer(markers[a.id]);
+            markers[a.id] = L.marker([a.sw_lat, a.sw_lng])
+                .addTo(map)
+                .bindPopup(`<b>${a.name}</b><br>ID: ${a.id}`);
+        }
+    });
 }
 
-// Sinkron otomatis tiap 5 detik
 loadData();
-setInterval(loadData, 5000);
+setInterval(loadData, 5000); // Auto update peta tiap 5 detik
 </script>
 </body>
 </html>
