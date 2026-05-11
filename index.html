@@ -3,57 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Risk Monitor - Fixed</title>
+    <title>Asset Risk & Movement Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+    
     <style>
-        /* CSS tetap sama seperti milik Anda untuk mempertahankan desain */
+        /* CSS DARI FILE ASLI ANDA */
         :root{ --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--bg3:#e4e8f0; --tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699; --br:#dde2ec;--br2:#c5cdd9; --blu:#185fa5;--blu-bg:#e6f1fb;--blu-tx:#0c447c; --grn:#3b6d11;--grn-bg:#eaf3de;--grn-tx:#27500a; --red:#a32d2d;--red-bg:#fcebeb;--red-tx:#791f1f; --amb:#854f0b;--amb-bg:#faeeda;--amb-tx:#633806; --pur:#534ab7;--pur-bg:#eeedfe;--pur-tx:#3c3489; --tel:#0f6e56;--tel-bg:#e1f5ee;--tel-tx:#085041; }
         .dark{ --bg0:#070b15;--bg1:#0d1424;--bg2:#111c30;--bg3:#1a2540; --tx1:#eef2ff;--tx2:#94a3b8;--tx3:#475569; --br:#1e2d4a;--br2:#2d3f5a; --blu:#378add;--blu-bg:#0c1e35;--blu-tx:#85b7eb; --grn:#639922;--grn-bg:#0a1f07;--grn-tx:#c0dd97; --red:#e24b4a;--red-bg:#1f0808;--red-tx:#f09595; --amb:#ef9f27;--amb-bg:#1e0f00;--amb-tx:#fac775; --pur:#7f77dd;--pur-bg:#1a1840;--pur-tx:#afa9ec; --tel:#1d9e75;--tel-bg:#041e17;--tel-tx:#9fe1cb; }
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:sans-serif;background:var(--bg0);color:var(--tx1);font-size:13px}
-        .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg1);border-bottom:1px solid var(--br)}
-        .tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--br);padding:0 10px;gap:15px;overflow-x:auto}
-        .tab{padding:12px 5px;font-size:12px;cursor:pointer;color:var(--tx3);border-bottom:2px solid transparent}
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;background:var(--bg1);border-bottom:1px solid var(--br)}
+        .logo-box{display:flex;align-items:center;gap:10px}
+        .logo-icon{width:32px;height:32px;background:var(--blu);color:white;display:flex;justify-content:center;align-items:center;border-radius:8px}
+        .tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--br);padding:0 15px;gap:10px;overflow-x:auto}
+        .tab{padding:12px 8px;font-size:12px;font-weight:500;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
         .tab.on{color:var(--blu);border-bottom-color:var(--blu)}
         .view{display:none;padding:15px}
         .view.on{display:block}
-        .card{background:var(--bg1);border:1px solid var(--br);border-radius:10px;padding:15px;margin-bottom:10px}
-        .inp{width:100%;padding:8px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--br);border-radius:5px;color:var(--tx1)}
-        .btn{padding:10px;border-radius:5px;cursor:pointer;border:none;width:100%;font-weight:bold}
+        .card{background:var(--bg1);border:1px solid var(--br);border-radius:10px;padding:15px;margin-bottom:15px}
+        .inp{width:100%;padding:10px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--br);border-radius:6px;color:var(--tx1);font-size:12px}
+        .btn{padding:10px 15px;border-radius:6px;cursor:pointer;border:none;font-weight:600;display:inline-flex;align-items:center;gap:8px;justify-content:center}
         .bp{background:var(--blu);color:white}
         .bs{background:var(--grn);color:white}
-        #map1, #map2 { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; z-index: 1; }
+        .bb{width:100%;margin-bottom:10px}
+        #map1, #map2 { height: 350px; width: 100%; border-radius: 10px; border:1px solid var(--br); z-index: 1; }
+        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
     </style>
 </head>
 <body class="dark">
 
 <div class="topbar">
-    <div style="font-weight:bold">Asset Risk Monitor v2</div>
-    <button onclick="toggleTheme()" style="padding:4px 10px; border-radius:15px; cursor:pointer">Ganti Tema</button>
+    <div class="logo-box">
+        <div class="logo-icon"><i class="ti ti-satellite"></i></div>
+        <div>
+            <div style="font-weight:bold; font-size:14px">Asset Risk Monitor</div>
+            <div style="font-size:10px; color:var(--tx3)">Dual-Layer Tracking System</div>
+        </div>
+    </div>
+    <button class="btn" onclick="toggleTheme()" style="background:var(--bg2); border:1px solid var(--br); font-size:11px">
+        <i class="ti ti-sun"></i> Mode
+    </button>
 </div>
 
 <div class="tabs">
     <div class="tab on" id="t-dash" onclick="gotoTab('dash')">Dashboard</div>
-    <div class="tab" id="t-map" onclick="gotoTab('map')">Peta</div>
+    <div class="tab" id="t-map" onclick="gotoTab('map')">Peta Live</div>
     <div class="tab" id="t-enroll" onclick="gotoTab('enroll')">Pendaftaran</div>
 </div>
 
 <div class="view on" id="view-dash">
-    <div class="card">
-        <h3>Status Aset</h3>
-        <div id="dash-list">Belum ada aset terdaftar.</div>
+    <div class="grid2">
+        <div class="card">
+            <h3>Daftar Aset</h3>
+            <div id="dash-list" style="margin-top:10px">Memuat data...</div>
+        </div>
+        <div class="card">
+            <h3>Peringatan Keamanan</h3>
+            <div id="alert-log" style="font-size:11px; color:var(--red)">Belum ada aktivitas mencurigakan.</div>
+        </div>
     </div>
 </div>
 
 <div class="view" id="view-map">
     <div class="card">
-        <h3>Live GPS Map</h3>
+        <h3>Live GPS View</h3>
         <div id="map1"></div>
     </div>
 </div>
 
 <div class="view" id="view-enroll">
-    <div class="card">
-        <h3>Pendaftaran Device Baru
+    <div style="max-width:500px; margin:0 auto">
+        <div class="card">
+            <h3>Pendaftaran Unit Baru</h3>
+            <p style="font-size:11px; color:var(--tx3); margin-bottom:15px">Daftarkan device untuk mulai monitoring dual-layer.</p>
+            
+            <label style="font-size:10px; color:var(--tx3)">ID UNIT</label>
+            <input class="inp" id="e-id" placeholder="Contoh: DEV-001">
+            
+            <label style="font-size:10px; color:var(--tx3)">NAMA ASET</label>
+            <input class="inp" id="e-name" placeholder="Contoh: Laptop Survey A">
+            
+            <div style="background:var(--bg2); padding:10px; border-radius:8px; margin-bottom:15px">
+                <label style="font-size:10px; color:var(--tx3)">LOKASI HOMEBASE (ZONA AMAN)</label>
+                <div style="display:flex; gap:10px; margin-top:5px">
+                    <input class="inp" id="e-lat" placeholder="Latitude" style="margin-bottom:0">
+                    <input class="inp" id="e-lng" placeholder="Longitude" style="margin-bottom:0">
+                </div>
+                <button class="btn bp bb" style="margin-top:10px" onclick="captureGPS()">
+                    <i class="ti ti-current-location"></i> Ambil Lokasi Sekarang
+                </button>
+            </div>
+            
+            <button class="btn bs bb" onclick="enrollDevice()">
+                <i class="ti ti-device-floppy"></i> Simpan ke Sistem
+            </button>
+            <div id="e-msg" style="text-align:center; font-size:11px"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Inisialisasi Data Global
+    let assets = JSON.parse(localStorage.getItem('tracked_assets')) || [];
+    let mapInstance = null;
+    let markers = [];
+
+    // 2. Navigasi Tab
+    function gotoTab(name) {
+        // Reset kelas 'on'
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+        
+        // Aktifkan tab yang diklik
+        document.getElementById('t-' + name).classList.add('on');
+        document.getElementById('view-' + name).classList.add('on');
+
+        // Trigger fungsi spesifik tab
+        if(name === 'map') initMap();
+        if(name === 'dash') renderDashboard();
+    }
+
+    // 3. Toggle Tema
+    function toggleTheme() {
+        document.body.classList.toggle('dark');
+    }
+
+    // 4. Deteksi GPS Otomatis
+    function captureGPS() {
+        if (!navigator.geolocation) {
+            alert("Geolocation tidak didukung browser Anda.");
+            return;
+        }
+        
+        const msg = document.getElementById('e-msg');
+        msg.innerText = "Mencari sinyal GPS...";
+        
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                document.getElementById('e-lat').value = pos.coords.latitude.toFixed(6);
+                document.getElementById('e-lng').value = pos.coords.longitude.toFixed(6);
+                msg.innerHTML = "<span style='color:var(--grn)'>Lokasi berhasil dikunci!</span>";
+            },
+            (err) => {
+                msg.innerHTML = "<span style='color:var(--red)'>Gagal: " + err.message + "</span>";
+            }
+        );
+    }
+
+    // 5. Simpan Device
+    function enrollDevice() {
+        const id = document.getElementById('e-id').value;
+        const name = document.getElementById('e-name').value;
+        const lat = document.getElementById('e-lat').value;
+        const lng = document.getElementById('e-lng').value;
+
+        if(!id || !lat || !lng) {
+            alert("Harap isi semua kolom!");
+            return;
+        }
+
+        const newAsset = {
+            id: id,
+            name: name || id,
+            homeLat: parseFloat(lat),
+            homeLng: parseFloat(lng),
+            curLat: parseFloat(lat),
+            curLng: parseFloat(lng),
+            status: 'Aman',
+            lastUpdate: new Date().toLocaleTimeString()
+        };
+
+        assets.push(newAsset);
+        localStorage.setItem('tracked_assets', JSON.stringify(assets));
+        
+        alert("Aset berhasil didaftarkan!");
+        
+        // Reset form
+        document.getElementById('e-id').value = '';
+        document.getElementById('e-name').value = '';
+        renderDashboard();
+    }
+
+    // 6. Render Dashboard
+    function renderDashboard() {
+        const list = document.getElementById('dash-list');
+        if(assets.length === 0) {
+            list.innerHTML = "<div style='color:var(--tx3); text-align:center'>Belum ada aset.</div>";
+            return;
+        }
+
+        let html = "<table style='width:100%; border-collapse:collapse; font-size:11px'>";
+        html += "<tr style='color:var(--tx3); border-bottom:1px solid var(--br)'><th align='left'>ID</th><th align='left'>Status</th><th align='right'>Lokasi</th></tr>";
+        
+        assets.forEach(a => {
+            html += `<tr style='border-bottom:1px solid var(--br)'>
+                <td style='padding:8px 0'><b>${a.id}</b><br>${a.name}</td>
+                <td><span style='color:var(--grn)'>● ${a.status}</span></td>
+                <td align='right'>${a.curLat.toFixed(4)}, ${a.curLng.toFixed(4)}</td>
+            </tr>`;
+        });
+        html += "</table>";
+        list.innerHTML = html;
+    }
+
+    // 7. Peta (Leaflet)
+    function initMap() {
+        // Hapus instance map lama jika ada agar tidak error
+        if (mapInstance !== null) {
+            mapInstance.remove();
+        }
+
+        // Lokasi default (Jakarta) atau ke aset pertama jika ada
+        let center = [-6.2000, 106.8166];
+        if(assets.length > 0) center = [assets[0].curLat, assets[0].curLng];
+
+        mapInstance = L.map('map1').setView(center, 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapInstance);
+
+        // Tambahkan marker untuk tiap aset
+        assets.forEach(a => {
+            L.marker([a.curLat, a.curLng])
+                .addTo(mapInstance)
+                .bindPopup(`<b>${a.name}</b><br>ID: ${a.id}<br>Status: ${a.status}`);
+            
+            // Tambahkan lingkaran geofence (Radius 100m)
+            L.circle([a.homeLat, a.homeLng], {
+                color: '#185fa5',
+                fillColor: '#185fa5',
+                fillOpacity: 0.1,
+                radius: 100
+            }).addTo(mapInstance);
+        });
+    }
+
+    // Jalankan Dashboard saat halaman dimuat
+    window.onload = renderDashboard;
+</script>
+
+</body>
+</html>
