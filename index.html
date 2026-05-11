@@ -6,125 +6,126 @@
     <title>Asset Risk Monitor - Cloud Sync</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg0:#f4f6fa; --bg1:#ffffff; --blu:#185fa5; --tx1:#0f1117; --br:#dde2ec;
+        /* CSS ASLI LU YANG KEREN GUA BALIKIN LAGI */
+        :root{
+            --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--bg3:#e4e8f0;
+            --tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699;
+            --br:#dde2ec;--blu:#185fa5;--grn:#3b6d11;--red:#a32d2d;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg0); margin: 0; padding: 20px; color: var(--tx1); }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: var(--bg1); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--br); }
-        h2 { margin-top: 0; color: var(--blu); display: flex; align-items: center; gap: 10px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--br); border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        .btn-primary { background: var(--blu); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #eee; }
-        .online { background: #eaf3de; color: #3b6d11; }
-        #asset-list { margin-top: 15px; }
-        .asset-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-        #map { height: 300px; border-radius: 12px; border: 1px solid var(--br); margin-top: 10px; }
-        .sync-info { font-size: 12px; color: #7a8699; text-align: center; margin-top: 10px; }
+        body { font-family: sans-serif; background: var(--bg0); color: var(--tx1); margin: 0; padding: 20px; }
+        .card { background: var(--bg1); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric { background: var(--bg2); padding: 15px; border-radius: 10px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--br); }
+        th { background: var(--bg2); color: var(--tx2); }
+        .status-on { color: var(--grn); font-weight: bold; }
+        #map { height: 400px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--br); }
+        input, select { padding: 10px; border: 1px solid var(--br); border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        .btn { background: var(--blu); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
     <div class="card">
-        <h2>🛰️ Asset Tracker Cloud</h2>
-        <p style="font-size: 14px; color: #666;">Data tersinkron otomatis antara HP & Laptop via Supabase.</p>
-        
-        <input type="text" id="asset-id" placeholder="Masukkan Device ID (Contoh: SEUIC-001)">
-        <input type="text" id="asset-name" placeholder="Masukkan Nama Aset (Contoh: Forklift A)">
-        <button class="btn btn-primary" onclick="enrollAsset()">+ Enroll ke Cloud</button>
+        <h2>🛰️ Asset Risk Monitor (Cloud Live)</h2>
+        <div class="grid">
+            <div class="metric"><small>Total Assets</small><br><strong id="m-total">0</strong></div>
+            <div class="metric"><small>SW Online</small><br><strong id="m-sw" style="color:var(--grn)">0</strong></div>
+            <div class="metric"><small>HW Online</small><br><strong id="m-hw" style="color:var(--grn)">0</strong></div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+        <div class="card">
+            <h3>Enroll New Asset</h3>
+            <input type="text" id="in-id" placeholder="Device ID (SEUIC-001)">
+            <input type="text" id="in-name" placeholder="Asset Name">
+            <input type="text" id="in-owner" placeholder="Coordinator Name">
+            <button class="btn" onclick="enrollAsset()">Enroll to Cloud</button>
+            <p id="sync-status" style="font-size: 12px; color: var(--tx3); margin-top: 10px;">Status: Menghubungkan...</p>
+        </div>
+
+        <div class="card">
+            <h3>Active Assets</h3>
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Owner</th><th>SW Status</th></tr>
+                </thead>
+                <tbody id="asset-table"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card">
-        <h3>Daftar Aset Terdaftar</h3>
-        <div id="asset-list">Sedang memuat data...</div>
-    </div>
-
-    <div class="card">
-        <h3>Lokasi Real-time</h3>
+        <h3>Live Tracking Map</h3>
         <div id="map"></div>
     </div>
-    
-    <p class="sync-info" id="last-update">Status: Menghubungkan ke server...</p>
-</div>
 
 <script>
-    // --- KONEKSI OTOMATIS KE SUPABASE LU ---
+    // --- SUPABASE CONFIG ---
     const SUPABASE_URL = 'https://uappnmhaqblzittbjmsi.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_DCWTb1BAzQOgO8-sSmlEyg_7dc_jS2X';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let assets = [];
-    let map = L.map('map').setView([-6.2000, 106.8166], 13);
+    const map = L.map('map').setView([-6.2000, 106.8166], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Fungsi Ambil Data (Load)
-    async function loadFromCloud() {
+    // LOAD DATA
+    async function loadData() {
         const { data, error } = await _supabase.from('assets').select('*');
-        if (error) {
-            console.error("Error:", error);
-            document.getElementById('last-update').innerText = "Gagal sinkron data.";
-        } else {
+        if (!error) {
             assets = data;
-            renderList();
-            document.getElementById('last-update').innerText = "Update Terakhir: " + new Date().toLocaleTimeString();
+            renderAll();
+            document.getElementById('sync-status').innerText = "Last Sync: " + new Date().toLocaleTimeString();
         }
     }
 
-    // Fungsi Simpan Data (Save)
+    // ENROLL DATA
     async function enrollAsset() {
-        const idInput = document.getElementById('asset-id');
-        const nameInput = document.getElementById('asset-name');
-        
-        if(!idInput.value || !nameInput.value) return alert("Isi ID dan Nama dulu!");
+        const id = document.getElementById('in-id').value;
+        const name = document.getElementById('in-name').value;
+        const owner = document.getElementById('in-owner').value;
 
-        const newAsset = {
-            id: idInput.value,
-            name: nameInput.value,
-            sw_status: 'online',
-            last_seen: new Date().toISOString()
-        };
+        if(!id || !name) return alert("ID dan Nama wajib diisi!");
 
-        const { error } = await _supabase.from('assets').upsert(newAsset);
-        
-        if (error) {
-            alert("Gagal simpan! Pastikan tabel 'assets' sudah dibuat di Supabase.");
-        } else {
-            alert("Berhasil! Data terkirim ke Cloud.");
-            idInput.value = '';
-            nameInput.value = '';
-            loadFromCloud();
+        const { error } = await _supabase.from('assets').upsert({
+            id: id, name: name, owner: owner, sw_status: 'online'
+        });
+
+        if (error) alert("Gagal simpan ke Cloud!");
+        else {
+            document.getElementById('in-id').value = '';
+            document.getElementById('in-name').value = '';
+            loadData();
         }
     }
 
-    // Fungsi Tampilan
-    function renderList() {
-        const listDiv = document.getElementById('asset-list');
-        if (assets.length === 0) {
-            listDiv.innerHTML = "<p style='color:#999'>Belum ada aset. Tambahkan di atas.</p>";
-            return;
-        }
-        
-        listDiv.innerHTML = assets.map(a => `
-            <div class="asset-item">
-                <div>
-                    <strong>${a.id}</strong><br>
-                    <small>${a.name}</small>
-                </div>
-                <span class="status-badge online">${a.sw_status || 'online'}</span>
-            </div>
+    // RENDER TAMPILAN
+    function renderAll() {
+        // Update Metrics
+        document.getElementById('m-total').innerText = assets.length;
+        document.getElementById('m-sw').innerText = assets.filter(a => a.sw_status === 'online').length;
+
+        // Update Table
+        const tbody = document.getElementById('asset-table');
+        tbody.innerHTML = assets.map(a => `
+            <tr>
+                <td><b>${a.id}</b></td>
+                <td>${a.name}</td>
+                <td>${a.owner || '-'}</td>
+                <td class="status-on">${a.sw_status}</td>
+            </tr>
         `).join('');
     }
 
-    // Jalankan otomatis
-    loadFromCloud();
-    // Re-sync setiap 5 detik agar HP & Laptop tetap sama datanya
-    setInterval(loadFromCloud, 5000);
+    // Auto Refresh setiap 5 detik
+    loadData();
+    setInterval(loadData, 5000);
 </script>
-
 </body>
 </html>
