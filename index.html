@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Monitor Pro - Fix Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root{
-            --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--tx1:#0f1117;--tx3:#7a8699;--br:#dde2ec;--blu:#185fa5;--grn:#3b6d11;
-        }
-        body { font-family: sans-serif; background: var(--bg0); margin: 0; padding: 20px; }
-        .card { background: var(--bg1); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        #map { height: 450px; border-radius: 12px; border: 1px solid var(--br); }
-        .btn { background: var(--blu); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
-        input { padding: 10px; border: 1px solid var(--br); border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 10px; color: var(--tx3); font-size: 12px; border-bottom: 2px solid var(--bg2); }
-        td { padding: 10px; border-bottom: 1px solid var(--bg2); font-size: 13px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Monitor - Auto GPS Live</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+/* Style Tetap Mewah Sesuai Punya Lu */
+:root{
+  --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699;
+  --br:#dde2ec;--blu:#185fa5;--grn:#3b6d11;
+}
+body{margin:0;font-family:sans-serif;background:var(--bg0);display:flex;height:100vh;overflow:hidden}
+.side{width:260px;background:var(--bg1);border-right:1px solid var(--br);display:flex;flex-direction:column}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.content{flex:1;overflow-y:auto;padding:20px}
+.tab{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--tx2)}
+.tab.active{background:#e6f1fb;color:var(--blu);border-right:3px solid var(--blu)}
+.card{background:var(--bg1);border-radius:12px;padding:20px;border:1px solid var(--br);margin-bottom:20px}
+#map{height:100%;width:100%;border-radius:12px}
+.hidden{display:none}
+.btn{width:100%;padding:12px;background:var(--blu);color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
+.gps-box{background:var(--bg2);padding:10px;border-radius:6px;margin-bottom:10px;font-size:12px;text-align:center}
+</style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🛰️ Live Asset Map Sync</h2>
-    <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 20px;">
-        <div>
-            <input type="text" id="in-id" placeholder="ID (Contoh: JK-01)">
-            <input type="text" id="in-name" placeholder="Nama Aset">
-            <input type="number" step="any" id="in-lat" placeholder="Latitude (Contoh: -6.2)">
-            <input type="number" step="any" id="in-lng" placeholder="Longitude (Contoh: 106.8)">
-            <button class="btn" onclick="enrollWithLocation()">Update & Simpan Lokasi</button>
-        </div>
-        <div id="map"></div>
-    </div>
+<div class="side">
+  <div style="padding:20px;border-bottom:1px solid var(--br)"><h3 style="margin:0;color:var(--blu)">RISK MONITOR</h3></div>
+  <div class="tab active" onclick="showView('dashboard')"><i class="ti ti-dashboard"></i> Dashboard</div>
+  <div class="tab" onclick="showView('map-view')"><i class="ti ti-map-2"></i> Live Map</div>
+  <div class="tab" onclick="showView('enroll')"><i class="ti ti-plus"></i> Enroll Device</div>
 </div>
 
-<div class="card">
-    <h3>Daftar Lokasi Aset</h3>
-    <table>
-        <thead><tr><th>ID / Nama</th><th>Koordinat</th><th>Status</th></tr></thead>
-        <tbody id="asset-table"></tbody>
-    </table>
+<div class="main">
+  <div class="content">
+    
+    <div id="view-dashboard">
+      <div class="card">
+        <h3>System Status</h3>
+        <p id="gps-status" style="color:var(--tx3)">Mencari GPS Device...</p>
+      </div>
+    </div>
+
+    <div id="view-map-view" class="hidden" style="height:500px"><div id="map"></div></div>
+
+    <div id="view-enroll" class="hidden">
+      <div class="card" style="max-width:450px">
+        <h3>Enroll Current Device</h3>
+        <div class="gps-box">
+          📍 Lokasi Terdeteksi:<br>
+          <strong id="display-lat">0.00</strong>, <strong id="display-lng">0.00</strong>
+        </div>
+        <input type="text" id="in-id" placeholder="Device ID (Misal: HP-SAYA)" style="width:100%;padding:10px;margin-bottom:10px">
+        <input type="text" id="in-name" placeholder="Nama User" style="width:100%;padding:10px;margin-bottom:10px">
+        <button class="btn" onclick="saveDeviceLocation()">SIMPAN LOKASI KE CLOUD</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
@@ -51,69 +70,64 @@ const SUPABASE_URL = 'https://uappnmhaqblzittbjmsi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DCWTb1BAzQOgO8-sSmlEyg_7dc_jS2X';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let assets = [];
-let markers = {};
-const map = L.map('map').setView([-6.2000, 106.8166], 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let assets = [], map, markers = {};
+let currentPos = { lat: 0, lng: 0 };
+
+function showView(name){
+  document.querySelectorAll('.main > .content > div').forEach(d => d.classList.add('hidden'));
+  document.getElementById('view-'+name).classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if(name === 'map-view') setTimeout(() => map.invalidateSize(), 100);
+}
+
+// FUNGSI DETEKSI GPS HP OTOMATIS
+function startGpsTracking() {
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition((pos) => {
+      currentPos.lat = pos.coords.latitude;
+      currentPos.lng = pos.coords.longitude;
+      document.getElementById('display-lat').innerText = currentPos.lat.toFixed(6);
+      document.getElementById('display-lng').innerText = currentPos.lng.toFixed(6);
+      document.getElementById('gps-status').innerText = "✅ GPS Aktif";
+    }, (err) => {
+      document.getElementById('gps-status').innerText = "❌ GPS Error: " + err.message;
+    }, { enableHighAccuracy: true });
+  }
+}
 
 async function loadData() {
-    const { data, error } = await _supabase.from('assets').select('*');
-    if (!error && data) {
-        assets = data;
-        renderAll();
+  const { data } = await _supabase.from('assets').select('*');
+  if (data) {
+    assets = data;
+    renderMap();
+  }
+}
+
+async function saveDeviceLocation() {
+  const id = document.getElementById('in-id').value;
+  const name = document.getElementById('in-name').value;
+  if(!id) return alert("Isi ID Dulu!");
+
+  // Kirim data GPS asli HP ke Supabase
+  const { error } = await _supabase.from('assets').upsert({
+    id: id, name: name, 
+    sw_lat: currentPos.lat, 
+    sw_lng: currentPos.lng, 
+    sw_status: 'online',
+    last_seen: new Date().toISOString()
+  });
+
+  if(!error) {
+    alert("Lokasi HP Berhasil Dikirim!");
+    loadData();
+  }
+}
+
+function renderMap() {
+  assets.forEach(a => {
+    if(a.sw_lat && a.sw_lng) {
+      if(markers[a.id]) map.removeLayer(markers[a.id]);
+      markers[a.id] = L.marker([a.sw_lat, a.sw_lng]).addTo(map).bindPopup(a.name);
     }
-}
-
-async function enrollWithLocation() {
-    const id = document.getElementById('in-id').value;
-    const name = document.getElementById('in-name').value;
-    const lat = parseFloat(document.getElementById('in-lat').value);
-    const lng = parseFloat(document.getElementById('in-lng').value);
-
-    if(!id || isNaN(lat)) return alert("ID dan Lat/Long wajib angka!");
-
-    const { error } = await _supabase.from('assets').upsert({
-        id: id, 
-        name: name, 
-        sw_lat: lat, 
-        sw_lng: lng, 
-        sw_status: 'online'
-    });
-
-    if(!error) {
-        alert("Lokasi Terupdate!");
-        loadData();
-    } else {
-        console.error(error);
-    }
-}
-
-function renderAll() {
-    const tbody = document.getElementById('asset-table');
-    tbody.innerHTML = '';
-
-    assets.forEach(a => {
-        // Render Tabel
-        tbody.innerHTML += `
-            <tr>
-                <td><b>${a.id}</b><br><small>${a.name}</small></td>
-                <td>${a.sw_lat || 0}, ${a.sw_lng || 0}</td>
-                <td style="color:green">ONLINE</td>
-            </tr>
-        `;
-
-        // Render Map Marker
-        if (a.sw_lat && a.sw_lng) {
-            if (markers[a.id]) map.removeLayer(markers[a.id]);
-            markers[a.id] = L.marker([a.sw_lat, a.sw_lng])
-                .addTo(map)
-                .bindPopup(`<b>${a.name}</b><br>ID: ${a.id}`);
-        }
-    });
-}
-
-loadData();
-setInterval(loadData, 5000); // Auto update peta tiap 5 detik
-</script>
-</body>
-</html>
+  });
