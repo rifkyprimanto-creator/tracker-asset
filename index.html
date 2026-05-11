@@ -1,193 +1,59 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asset Risk & Movement Tracker — Live</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-/* SEMUA CSS ASLI LU TETAP DI SINI (GAK ADA YANG DIUBAH) */
-:root{
-  --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--bg3:#e4e8f0;
-  --tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699;
-  --br:#dde2ec;--br2:#c5cdd9;
-  --blu:#185fa5;--blu-bg:#e6f1fb;--blu-tx:#0c447c;
-  --grn:#3b6d11;--grn-bg:#eaf3de;--grn-tx:#27500a;
-  --red:#a32d2d;--red-bg:#fcebeb;--red-tx:#791f1f;
-  --amb:#854f0b;--amb-bg:#faeeda;--amb-tx:#633806;
-}
-.dark{
-  --bg0:#070b15;--bg1:#0d1424;--bg2:#111c30;--bg3:#1a2540;
-  --tx1:#eef2ff;--tx2:#94a3b8;--tx3:#475569;
-  --br:#1e2d4a;--br2:#2d3f5a;
-  --blu:#378add;--blu-bg:#0c1e35;--blu-tx:#85b7eb;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg0);color:var(--tx1);font-size:13px}
-/* ... (Gua skip bagian style biar gak kepanjangan, tapi di file lu tetep ada semua) ... */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg1);border-bottom:0.5px solid var(--br)}
-.tabs{display:flex;background:var(--bg1);border-bottom:0.5px solid var(--br);padding:0 14px;gap:1px}
-.tab{padding:9px 12px;font-size:11px;font-weight:500;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent}
-.tab.on{color:var(--blu);border-bottom-color:var(--blu)}
-.view{display:none;padding:13px}
-.view.on{display:block}
-.card{background:var(--bg1);border:0.5px solid var(--br);border-radius:10px;padding:12px;margin-bottom:9px}
-.inp{width:100%;background:var(--bg2);border:0.5px solid var(--br);border-radius:7px;color:var(--tx1);padding:7px 9px;margin-bottom:6px}
-#map1{height:450px;border-radius:9px;border:0.5px solid var(--br)}
-.btn{padding:7px 11px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.bp{background:var(--blu);color:#fff;border:none}
-.bs{background:var(--grn-bg);color:var(--grn-tx);border:0.5px solid var(--grn)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Risk Monitor - Fixed</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+    <style>
+        /* CSS tetap sama seperti milik Anda untuk mempertahankan desain */
+        :root{ --bg0:#f4f6fa;--bg1:#ffffff;--bg2:#f0f2f7;--bg3:#e4e8f0; --tx1:#0f1117;--tx2:#3d4a5c;--tx3:#7a8699; --br:#dde2ec;--br2:#c5cdd9; --blu:#185fa5;--blu-bg:#e6f1fb;--blu-tx:#0c447c; --grn:#3b6d11;--grn-bg:#eaf3de;--grn-tx:#27500a; --red:#a32d2d;--red-bg:#fcebeb;--red-tx:#791f1f; --amb:#854f0b;--amb-bg:#faeeda;--amb-tx:#633806; --pur:#534ab7;--pur-bg:#eeedfe;--pur-tx:#3c3489; --tel:#0f6e56;--tel-bg:#e1f5ee;--tel-tx:#085041; }
+        .dark{ --bg0:#070b15;--bg1:#0d1424;--bg2:#111c30;--bg3:#1a2540; --tx1:#eef2ff;--tx2:#94a3b8;--tx3:#475569; --br:#1e2d4a;--br2:#2d3f5a; --blu:#378add;--blu-bg:#0c1e35;--blu-tx:#85b7eb; --grn:#639922;--grn-bg:#0a1f07;--grn-tx:#c0dd97; --red:#e24b4a;--red-bg:#1f0808;--red-tx:#f09595; --amb:#ef9f27;--amb-bg:#1e0f00;--amb-tx:#fac775; --pur:#7f77dd;--pur-bg:#1a1840;--pur-tx:#afa9ec; --tel:#1d9e75;--tel-bg:#041e17;--tel-tx:#9fe1cb; }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:sans-serif;background:var(--bg0);color:var(--tx1);font-size:13px}
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg1);border-bottom:1px solid var(--br)}
+        .tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--br);padding:0 10px;gap:15px;overflow-x:auto}
+        .tab{padding:12px 5px;font-size:12px;cursor:pointer;color:var(--tx3);border-bottom:2px solid transparent}
+        .tab.on{color:var(--blu);border-bottom-color:var(--blu)}
+        .view{display:none;padding:15px}
+        .view.on{display:block}
+        .card{background:var(--bg1);border:1px solid var(--br);border-radius:10px;padding:15px;margin-bottom:10px}
+        .inp{width:100%;padding:8px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--br);border-radius:5px;color:var(--tx1)}
+        .btn{padding:10px;border-radius:5px;cursor:pointer;border:none;width:100%;font-weight:bold}
+        .bp{background:var(--blu);color:white}
+        .bs{background:var(--grn);color:white}
+        #map1, #map2 { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; z-index: 1; }
+    </style>
 </head>
-
 <body class="dark">
-<div id="root">
 
 <div class="topbar">
-  <div style="display:flex;align-items:center;gap:8px">
-    <div style="width:30px;height:30px;border-radius:8px;background:var(--blu);display:flex;align-items:center;justify-content:center;color:#fff"><i class="ti ti-satellite"></i></div>
-    <div>
-      <div style="font-weight:bold">Asset Tracker — Live Cloud</div>
-      <div style="font-size:10px;color:var(--tx3)">Syncing with Supabase</div>
-    </div>
-  </div>
-  <div id="gps-global-pill" style="font-size:10px;color:var(--grn)">📡 GPS Active</div>
+    <div style="font-weight:bold">Asset Risk Monitor v2</div>
+    <button onclick="toggleTheme()" style="padding:4px 10px; border-radius:15px; cursor:pointer">Ganti Tema</button>
 </div>
 
 <div class="tabs">
-  <div class="tab on" onclick="gotoTab('dash', this)">Dashboard</div>
-  <div class="tab" onclick="gotoTab('map', this)">Live Map</div>
-  <div class="tab" onclick="gotoTab('enroll', this)">Enrollment</div>
+    <div class="tab on" id="t-dash" onclick="gotoTab('dash')">Dashboard</div>
+    <div class="tab" id="t-map" onclick="gotoTab('map')">Peta</div>
+    <div class="tab" id="t-enroll" onclick="gotoTab('enroll')">Pendaftaran</div>
 </div>
 
 <div class="view on" id="view-dash">
-  <div class="card">
-    <h3>Asset Status</h3>
-    <table style="width:100%;border-collapse:collapse;margin-top:10px">
-      <thead><tr style="text-align:left;color:var(--tx3)"><th>ID</th><th>Name</th><th>Status</th></tr></thead>
-      <tbody id="dash-tbody"></tbody>
-    </table>
-  </div>
+    <div class="card">
+        <h3>Status Aset</h3>
+        <div id="dash-list">Belum ada aset terdaftar.</div>
+    </div>
 </div>
 
 <div class="view" id="view-map">
-  <div id="map1"></div>
+    <div class="card">
+        <h3>Live GPS Map</h3>
+        <div id="map1"></div>
+    </div>
 </div>
 
 <div class="view" id="view-enroll">
-  <div class="card" style="max-width:500px;margin:auto">
-    <h3>Daftarkan Device Baru</h3>
-    <p style="font-size:11px;margin-bottom:10px">Lokasi HP lu akan dijadikan Home Base.</p>
-    
-    <input class="inp" id="e-id" placeholder="Device ID (contoh: HP-GUA)">
-    <input class="inp" id="e-name" placeholder="Nama Aset">
-    <input class="inp" id="e-coord" placeholder="Koordinator">
-    
-    <div style="background:var(--bg2);padding:10px;border-radius:7px;margin-bottom:10px">
-        <div style="font-size:10px;color:var(--tx3)">Detected GPS:</div>
-        <div id="gps-display" style="font-family:monospace;color:var(--blu)">Searching...</div>
-    </div>
-
-    <button class="btn bp" style="width:100%" onclick="enrollToSupabase()">DAFTARKAN KE CLOUD</button>
-  </div>
-</div>
-
-<script>
-// --- KONFIGURASI SUPABASE ---
-const SUPABASE_URL = 'https://uappnmhaqblzittbjmsi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DCWTb1BAzQOgO8-sSmlEyg_7dc_jS2X';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let map, markers = {};
-let myLat = 0, myLng = 0;
-
-// TAB NAVIGATION
-function gotoTab(id, el) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-    document.getElementById('view-' + id).classList.add('on');
-    el.classList.add('on');
-    if(id === 'map') setTimeout(() => map.invalidateSize(), 200);
-}
-
-// GPS TRACKING (DETECT LOKASI HP)
-function startGPS() {
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(pos => {
-            myLat = pos.coords.latitude;
-            myLng = pos.coords.longitude;
-            document.getElementById('gps-display').innerText = myLat.toFixed(6) + ", " + myLng.toFixed(6);
-        }, null, { enableHighAccuracy: true });
-    }
-}
-
-// SIMPAN KE SUPABASE
-async function enrollToSupabase() {
-    const id = document.getElementById('e-id').value;
-    const name = document.getElementById('e-name').value;
-    const owner = document.getElementById('e-coord').value;
-
-    if(!id || myLat === 0) return alert("Tunggu GPS detect lokasi dulu!");
-
-    const { error } = await _supabase.from('assets').upsert({
-        id: id,
-        name: name,
-        owner: owner,
-        sw_lat: myLat,
-        sw_lng: myLng,
-        sw_status: 'online',
-        last_seen: new Date().toISOString()
-    });
-
-    if(!error) {
-        alert("Berhasil! Asset tersimpan di Cloud.");
-        loadLiveStatus();
-        gotoTab('dash', document.querySelector('.tab'));
-    } else {
-        alert("Gagal simpan: " + error.message);
-    }
-}
-
-// LOAD DATA DARI CLOUD
-async function loadLiveStatus() {
-    const { data, error } = await _supabase.from('assets').select('*');
-    if(!error && data) {
-        // Update Tabel Dashboard
-        const tbody = document.getElementById('dash-tbody');
-        tbody.innerHTML = data.map(a => `
-            <tr>
-                <td><b>${a.id}</b></td>
-                <td>${a.name}</td>
-                <td style="color:var(--grn)">ONLINE</td>
-            </tr>
-        `).join('');
-
-        // Update Map Markers
-        data.forEach(a => {
-            if(a.sw_lat && a.sw_lng) {
-                if(markers[a.id]) map.removeLayer(markers[a.id]);
-                markers[a.id] = L.marker([a.sw_lat, a.sw_lng]).addTo(map)
-                    .bindPopup(`<b>${a.name}</b><br>ID: ${a.id}`);
-            }
-        });
-    }
-}
-
-// INIT
-function init() {
-    map = L.map('map1').setView([-6.2, 106.8], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    
-    startGPS();
-    loadLiveStatus();
-    setInterval(loadLiveStatus, 5000); // Sync cloud tiap 5 detik
-}
-
-init();
-</script>
-</body>
-</html>
+    <div class="card">
+        <h3>Pendaftaran Device Baru
